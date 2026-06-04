@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新概念英语1 - 核心语法闯关</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="nce_lessons_data.js"></script>
+    <script src="nce_grammar_data.js"></script>
+    <style>
+        /* CSS Reset and Variables */
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #ec4899;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; touch-action: manipulation; }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-x: hidden;
+            color: var(--text-main);
+            padding-bottom: 60px;
+        }
+
+        /* Top Controls Layer */
+        .top-controls {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 15px 40px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .controls-left select {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            font-size: 1rem;
+            outline: none;
+            background: white;
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .controls-right button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--secondary-color);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(236, 72, 153, 0.2);
+        }
+
+        .controls-right button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(236, 72, 153, 0.3);
+        }
+
+        /* Glassmorphism Container */
+        .app-container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            margin-top: 80px;
+        }
+
+        /* Header / Progress */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed rgba(99, 102, 241, 0.2);
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .jump-input {
+            width: 42px;
+            text-align: center;
+            background: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.9em;
+            font-weight: bold;
+            padding: 2px 4px;
+            outline: none;
+            margin: 0 5px;
+        }
+        .jump-input::-webkit-outer-spin-button, .jump-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .jump-input:focus { box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3); }
+
+        .score-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Question Area */
+        .question-card {
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module-badge {
+            background: rgba(236, 72, 153, 0.1);
+            color: var(--secondary-color);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .question-hint {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        /* Options for MCQs */
+        .options-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid transparent;
+            padding: 15px 40px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 15px rgba(99, 102, 241, 0.2);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        /* Drag and Drop / Click Area */
+        .dnd-container {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .drop-zone {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            min-height: 80px;
+            padding: 20px;
+            background: rgba(255,255,255,0.4);
+            border: 2px dashed rgba(99, 102, 241, 0.5);
+            border-radius: 16px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .words-source {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .word-tile {
+            background: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            user-select: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .word-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 12px rgba(99, 102, 241, 0.15);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Answer Feedback */
+        .answer-feedback {
+            margin-top: 25px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+        .feedback-correct {
+            background: #ecfdf5;
+            color: #059669;
+            border: 2px solid #10b981;
+        }
+        .feedback-wrong {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 2px solid #ef4444;
+        }
+
+        /* Navigation Buttons */
+        .nav-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px dashed rgba(99, 102, 241, 0.2);
+            width: 100%;
+        }
+
+        .nav-btn {
+            background: #e5e7eb;
+            color: var(--text-main);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover { background: #d1d5db; }
+        .nav-btn-primary { background: var(--primary-color); color: white; }
+        .nav-btn-primary:hover { background: #4f46e5; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Result Screen */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.8s ease;
+        }
+        .result-trophy { font-size: 5rem; margin-bottom: 20px; }
+        
+        /* Floating background shapes */
+        .blob { position: absolute; filter: blur(80px); z-index: 1; opacity: 0.6; }
+        .blob-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: var(--primary-color); border-radius: 50%; }
+        .blob-2 { bottom: -100px; right: -100px; width: 300px; height: 300px; background: var(--secondary-color); border-radius: 50%; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+
+        .modal-content {
+            background: white; width: 90%; max-width: 800px; max-height: 85vh;
+            border-radius: 20px; padding: 30px 40px; position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f3f4f6;
+        }
+
+        .modal-header h2 { color: var(--primary-color); font-size: 1.5rem; }
+
+        .modal-actions button {
+            padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+
+        .btn-export { background: var(--success-color); color: white; margin-right: 10px; }
+        .btn-close { background: #e5e7eb; color: var(--text-main); }
+
+        .modal-body { overflow-y: auto; flex: 1; padding-right: 10px; }
+        .modal-body::-webkit-scrollbar { width: 8px; }
+        .modal-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- Top Controls -->
+    <div class="top-controls">
+        <div class="controls-left">
+            <select id="lesson-select">
+                <!-- Populated by JS -->
+            </select>
+        </div>
+        <div class="controls-right">
+            <button onclick="showAllGrammar()">📚 知识点总览</button>
+        </div>
+    </div>
+
+    <!-- Grammar Modal -->
+    <div class="modal-overlay" id="grammar-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-lesson-title">知识点总览</h2>
+                <div class="modal-actions">
+                    <button class="btn-export" onclick="exportWord()">📥 一键导出为 Word</button>
+                    <button class="btn-close" onclick="closeAllGrammar()">关闭</button>
+                </div>
+            </div>
+            <div class="modal-body" id="grammar-modal-body">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container">
+        <div class="header">
+            <div class="title" id="course-title">语法闯关</div>
+            <div class="progress-container">
+                <span style="font-weight: 600; color: var(--text-muted);">进度 
+                    <input type="number" class="jump-input" id="jumpInput" value="1" min="1" onchange="jumpToQuestion()" onkeydown="if(event.key==='Enter'){jumpToQuestion();this.blur();}"> 
+                    / <span id="totalCount">0</span>
+                </span>
+                <div class="score-badge">🌟 <span id="score">0</span></div>
+            </div>
+        </div>
+
+        <div id="game-area">
+            <div class="question-card" id="question-card">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+
+        <div class="result-screen" id="result-screen">
+            <div class="result-trophy">🏆</div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 15px;">太棒了！</h2>
+            <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 30px;">你已通关本节课的全部核心语法点。</p>
+            <button class="option-btn" onclick="loadLesson(document.getElementById('lesson-select').value)" style="background: var(--primary-color); color: white;">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        let quizData = [];
+        let currentIndex = 0;
+        let score = 0;
+        let selectedWords = [];
+        let answerWords = [];
+        let questionChecked = false; // Prevents checking multiple times per question
+
+        // App Initialization
+        window.onload = () => {
+            const select = document.getElementById('lesson-select');
+            
+            let sortedKeys = Object.keys(allGrammarData).sort((a, b) => {
+                return parseInt(a.split('-')[0]) - parseInt(b.split('-')[0]);
+            });
+            
+            for (let lessonKey of sortedKeys) {
+                let opt = document.createElement('option');
+                opt.value = lessonKey;
+                let displayNum = lessonKey.split('-')[0];
+                let titleStr = '';
+                if (typeof lessonsData !== 'undefined' && lessonsData[displayNum]) {
+                    titleStr = `: ${lessonsData[displayNum].title}`;
+                }
+                opt.textContent = `Lesson ${displayNum}${titleStr}`;
+                select.appendChild(opt);
+            }
+            
+            select.addEventListener('change', (e) => {
+                loadLesson(e.target.value);
+            });
+
+            if(select.options.length > 0) {
+                loadLesson(select.value);
+            }
+        };
+
+        function loadLesson(lessonKey) {
+            quizData = allGrammarData[lessonKey];
+            currentIndex = 0;
+            score = 0;
+            let displayNum = lessonKey.split('-')[0];
+            let titleStr = '';
+            if (typeof lessonsData !== 'undefined' && lessonsData[displayNum]) {
+                titleStr = `: ${lessonsData[displayNum].title}`;
+            }
+            document.getElementById('course-title').textContent = `Lesson ${displayNum}${titleStr} 语法闯关`;
+            document.getElementById('score').textContent = score;
+            document.getElementById('totalCount').textContent = quizData.length;
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            renderQuestion();
+        }
+
+        function jumpToQuestion() {
+            let val = parseInt(document.getElementById('jumpInput').value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > quizData.length) val = quizData.length;
+            currentIndex = val - 1;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            questionChecked = false;
+            const card = document.getElementById('question-card');
+            card.innerHTML = '';
+            
+            document.getElementById('jumpInput').value = currentIndex + 1;
+
+            const q = quizData[currentIndex];
+
+            let navHtml = `
+                <div class="nav-controls">
+                    ${currentIndex > 0 ? `<button class="nav-btn" onclick="prevQuestion()">上一题</button>` : `<button class="nav-btn" style="opacity:0.5; cursor:default;" disabled>上一题</button>`}
+                    <button class="nav-btn nav-btn-primary" onclick="nextQuestion()">下一题</button>
+                </div>
+            `;
+
+            if (q.type === 'lesson') {
+                card.innerHTML = `
+                    <div class="module-badge">课前讲解</div>
+                    <div class="question-text" style="color: var(--primary-color);">${q.title}</div>
+                    <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); line-height: 1.6; font-size: 1.1rem; width: 100%;">
+                        ${q.content}
+                    </div>
+                    ${navHtml}
+                `;
+            } else if (q.type === 'mcq') {
+                let optionsHtml = q.options.map((opt, i) => {
+                    let safeOpt = opt.replace(/'/g, "\\'");
+                    let safeAns = q.answer.replace(/'/g, "\\'");
+                    return `<button class="option-btn" id="mcq-opt-${i}" onclick="checkMcqAnswer(${i}, '${safeOpt}', '${safeAns}')">${opt}</button>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="module-badge">${q.module}</div>
+                    <div class="question-text">${q.question.replace('___', '<span style="border-bottom: 3px solid var(--primary-color); padding: 0 20px; color: transparent;">___</span>')}</div>
+                    <div class="question-hint">👉 ${q.hint}</div>
+                    <div class="options-container" id="mcq-options-container">
+                        ${optionsHtml}
+                    </div>
+                    <div id="feedback-area" class="answer-feedback"></div>
+                    ${navHtml}
+                `;
+            } else if (q.type === 'build') {
+                selectedWords = [];
+                answerWords = [...q.words].sort(() => Math.random() - 0.5);
+
+                card.innerHTML = `
+                    <div class="module-badge">${q.module}</div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="question-hint">👉 ${q.hint}</div>
+                    <div class="dnd-container">
+                        <div class="drop-zone" id="drop-zone"></div>
+                        <div class="words-source" id="words-source"></div>
+                    </div>
+                    <div style="margin-top: 20px;" id="build-action-btns">
+                        <button class="option-btn" style="background: #e5e7eb; color: var(--text-main); margin-right: 15px; padding: 12px 30px;" onclick="resetBuild()">↺ 重置</button>
+                        <button class="option-btn" id="check-btn" onclick="checkBuildAnswer()" style="display:inline-block; background: var(--primary-color); color: white; padding: 12px 30px;">检查答案</button>
+                    </div>
+                    <div id="feedback-area" class="answer-feedback"></div>
+                    ${navHtml}
+                `;
+                renderBuildWords();
+            }
+        }
+
+        /* Build Logic */
+        function renderBuildWords() {
+            const source = document.getElementById('words-source');
+            const drop = document.getElementById('drop-zone');
+            
+            source.innerHTML = '';
+            drop.innerHTML = '';
+
+            answerWords.forEach((word, index) => {
+                const el = document.createElement('div');
+                el.className = 'word-tile';
+                el.textContent = word;
+                if(!questionChecked) el.onclick = () => selectWord(index);
+                else el.style.cursor = 'default';
+                source.appendChild(el);
+            });
+
+            selectedWords.forEach((word, index) => {
+                const el = document.createElement('div');
+                el.className = 'word-tile';
+                el.textContent = word;
+                el.style.background = 'var(--primary-color)';
+                el.style.color = 'white';
+                if(!questionChecked) el.onclick = () => deselectWord(index);
+                else el.style.cursor = 'default';
+                drop.appendChild(el);
+            });
+        }
+
+        function resetBuild() {
+            questionChecked = false;
+            const q = quizData[currentIndex];
+            selectedWords = [];
+            answerWords = [...q.words].sort(() => Math.random() - 0.5);
+            
+            document.getElementById('check-btn').style.display = 'inline-block';
+            document.getElementById('feedback-area').style.display = 'none';
+            const dropZone = document.getElementById('drop-zone');
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            
+            renderBuildWords();
+        }
+
+        function selectWord(index) {
+            if(questionChecked) return;
+            selectedWords.push(answerWords[index]);
+            answerWords.splice(index, 1);
+            renderBuildWords();
+        }
+
+        function deselectWord(index) {
+            if(questionChecked) return;
+            answerWords.push(selectedWords[index]);
+            selectedWords.splice(index, 1);
+            renderBuildWords();
+        }
+
+        /* Checking Logic */
+        function checkMcqAnswer(optIndex, selected, correct) {
+            if (questionChecked) return;
+            questionChecked = true;
+            
+            const q = quizData[currentIndex];
+            const container = document.getElementById('mcq-options-container');
+            const feedback = document.getElementById('feedback-area');
+            const btn = document.getElementById(`mcq-opt-${optIndex}`);
+
+            // Disable all buttons
+            for(let i=0; i<q.options.length; i++) {
+                let el = document.getElementById(`mcq-opt-${i}`);
+                el.disabled = true;
+                if(q.options[i] === correct) {
+                    el.style.background = 'var(--success-color)';
+                    el.style.color = 'white';
+                    el.style.borderColor = 'var(--success-color)';
+                }
+            }
+
+            if (selected === correct) {
+                feedback.innerHTML = '✅ 回答正确！';
+                feedback.className = 'answer-feedback feedback-correct';
+                score += 10;
+                document.getElementById('score').textContent = score;
+            } else {
+                btn.classList.add('shake');
+                btn.style.background = 'var(--error-color)';
+                btn.style.color = 'white';
+                btn.style.borderColor = 'var(--error-color)';
+                
+                feedback.innerHTML = `❌ 回答错误<br><span style="font-size: 1rem; color: var(--text-main); font-weight: normal; margin-top: 5px; display: inline-block;">正确答案应该是：<b>${correct}</b></span>`;
+                feedback.className = 'answer-feedback feedback-wrong';
+            }
+            feedback.style.display = 'block';
+        }
+
+        function checkBuildAnswer() {
+            if (questionChecked) return;
+            
+            const q = quizData[currentIndex];
+            const currentSentence = selectedWords.join(' ');
+            const feedback = document.getElementById('feedback-area');
+            const dropZone = document.getElementById('drop-zone');
+            
+            if (selectedWords.length === 0) {
+                dropZone.classList.add('shake');
+                setTimeout(() => dropZone.classList.remove('shake'), 500);
+                return;
+            }
+
+            questionChecked = true;
+            document.getElementById('check-btn').style.display = 'none';
+
+            if (currentSentence === q.answer) {
+                dropZone.style.borderColor = 'var(--success-color)';
+                dropZone.style.background = 'rgba(16, 185, 129, 0.1)';
+                
+                feedback.innerHTML = '✅ 组装完全正确！';
+                feedback.className = 'answer-feedback feedback-correct';
+                if (!q.scored) {
+                    score += 15;
+                    q.scored = true;
+                }
+                document.getElementById('score').textContent = score;
+            } else {
+                const card = document.getElementById('question-card');
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 500);
+                
+                dropZone.style.borderColor = 'var(--error-color)';
+                dropZone.style.background = 'rgba(239, 68, 68, 0.1)';
+
+                feedback.innerHTML = `❌ 顺序有误<br><span style="font-size: 1rem; color: var(--text-main); font-weight: normal; margin-top: 5px; display: inline-block;">正确的句子应该是：<b>${q.answer}</b></span>`;
+                feedback.className = 'answer-feedback feedback-wrong';
+            }
+            feedback.style.display = 'block';
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= quizData.length) {
+                document.getElementById('game-area').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'flex';
+            } else {
+                renderQuestion();
+            }
+        }
+
+        /* Modal and Export Logic */
+        function showAllGrammar() {
+            const body = document.getElementById('grammar-modal-body');
+            const select = document.getElementById('lesson-select');
+            let displayNum = select.value.split('-')[0];
+            let titleStr = '';
+            if (typeof lessonsData !== 'undefined' && lessonsData[displayNum]) {
+                titleStr = `: ${lessonsData[displayNum].title}`;
+            }
+            const lessonName = `Lesson ${displayNum}${titleStr}`;
+            
+            document.getElementById('modal-lesson-title').textContent = lessonName + " 知识点总览";
+            body.innerHTML = '';
+            
+            const lessonLessons = quizData.filter(q => q.type === 'lesson');
+            if (lessonLessons.length === 0) {
+                body.innerHTML = '<p style="text-align:center; color: var(--text-muted); margin-top: 20px;">本课暂无讲解内容。</p>';
+            } else {
+                lessonLessons.forEach(l => {
+                    const div = document.createElement('div');
+                    div.style.marginBottom = '20px';
+                    div.style.padding = '20px';
+                    div.style.background = '#f8fafc';
+                    div.style.borderLeft = '4px solid var(--primary-color)';
+                    div.style.borderRadius = '0 8px 8px 0';
+                    div.innerHTML = `<h3 style="margin-bottom: 15px; color: var(--primary-color); font-size: 1.2rem;">${l.title}</h3><div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-main);">${l.content}</div>`;
+                    body.appendChild(div);
+                });
+            }
+            document.getElementById('grammar-modal').style.display = 'flex';
+        }
+
+        function closeAllGrammar() {
+            document.getElementById('grammar-modal').style.display = 'none';
+        }
+
+        function exportWord() {
+            let contentHtml = document.getElementById('grammar-modal-body').innerHTML;
+            let select = document.getElementById('lesson-select');
+            let displayNum = select.value.split('-')[0];
+            let titleStr = '';
+            let fileTitle = `Lesson ${displayNum}`;
+            if (typeof lessonsData !== 'undefined' && lessonsData[displayNum]) {
+                titleStr = `: ${lessonsData[displayNum].title}`;
+                fileTitle = `Lesson_${displayNum}_${lessonsData[displayNum].title.replace(/[^a-zA-Z0-9_\-\u4e00-\u9fa5]/g, '_')}`;
+            }
+            let lessonName = `Lesson ${displayNum}${titleStr}`;
+            
+            // Build MS Word compatible HTML
+            let html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>${lessonName} 语法重点<\/title>
+                <style>
+                    body { font-family: 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #333; }
+                    h3 { color: #6366f1; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+                    b { color: inherit; }
+                <\/style>
+            <\/head>
+            <body>
+                <h1 style="text-align:center;">${lessonName} 语法重点复习<\/h1>
+                ${contentHtml}
+            <\/body>
+            <\/html>`;
+            
+            let blob = new Blob([String.fromCharCode(0xFEFF), html], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement('a');
+            link.href = url;
+            link.download = `新概念英语_${fileTitle}_语法重点.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+    </script>
+</body>
+</html>
