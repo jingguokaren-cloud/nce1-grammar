@@ -819,27 +819,52 @@ th{background:#EEF2FB}.lesson-figure img{max-width:100%;height:auto}.spk{display
     translationToast.style.left = x + "px";
     translationToast.style.top = y + "px";
     translationToast.style.background = "#fff";
-    translationToast.style.padding = "10px 14px";
-    translationToast.style.borderRadius = "8px";
-    translationToast.style.boxShadow = "0 4px 14px rgba(0,0,0,0.15)";
+    translationToast.style.padding = "12px 16px";
+    translationToast.style.borderRadius = "12px";
+    translationToast.style.boxShadow = "0 8px 24px rgba(0,0,0,0.12)";
     translationToast.style.border = "1px solid #E2E8F0";
     translationToast.style.zIndex = "10000";
     translationToast.style.transform = "translate(-50%, -100%)";
     translationToast.style.marginTop = "-10px";
-    translationToast.style.pointerEvents = "none";
+    translationToast.style.pointerEvents = "auto";
+    
+    const isAdded = !!state.vocab[word];
+    
     translationToast.innerHTML = `
       <div style="font-weight:700; color:var(--blue); font-size:16px;">${escapeHtml(word)}</div>
-      <div style="color:var(--ink2); font-size:14px; margin-top:4px;">${escapeHtml(text)}</div>
-      <div style="color:#10B981; font-size:11px; margin-top:6px;">✅ 已收录生词本</div>
+      <div style="color:var(--ink2); font-size:14px; margin-top:4px; max-width:250px; line-height: 1.4;">${escapeHtml(text)}</div>
+      <div style="margin-top:10px;">
+        <button id="btn-add-vocab" style="border:none; background:${isAdded ? '#F1FBF4' : '#E0F2FE'}; color:${isAdded ? '#10B981' : 'var(--blue)'}; padding: 6px 12px; border-radius: 6px; font-size:13px; cursor:pointer; font-weight: 500; transition: all 0.2s;">
+          ${isAdded ? '✅ 已收录生词本' : '➕ 收录到生词本'}
+        </button>
+      </div>
     `;
+    
     document.body.appendChild(translationToast);
     
+    document.getElementById("btn-add-vocab").onclick = (e) => {
+       e.stopPropagation();
+       if (!state.vocab[word]) {
+          state.vocab[word] = { translation: text, ts: Date.now() };
+          saveState();
+          e.target.innerText = '✅ 已收录生词本';
+          e.target.style.background = '#F1FBF4';
+          e.target.style.color = '#10B981';
+          if (typeof curUnit !== "undefined" && curUnit === "vocab" && typeof renderVocabBook === "function") {
+            renderVocabBook();
+          }
+       }
+    };
+    
     setTimeout(() => {
-      if (translationToast) {
-        translationToast.remove();
-        translationToast = null;
-      }
-    }, 3000);
+      document.addEventListener("click", function closeToast(e) {
+        if (translationToast && !translationToast.contains(e.target)) {
+          translationToast.remove();
+          translationToast = null;
+          document.removeEventListener("click", closeToast);
+        }
+      });
+    }, 100);
   }
 
   document.body.addEventListener("dblclick", async (e) => {
@@ -862,30 +887,26 @@ th{background:#EEF2FB}.lesson-figure img{max-width:100%;height:auto}.spk{display
     const x = rect.left + rect.width / 2 + window.scrollX;
     const y = rect.top + window.scrollY;
     
-    try {
-      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|zh-CN`);
-      const data = await res.json();
-      if (data && data.responseData && data.responseData.translatedText) {
-        let trans = data.responseData.translatedText;
-        // MyMemory sometimes returns "No human translation found..." or similar fallback if not found
-        // But for common words it works well.
-        if (trans.includes("MYMEMORY WARNING")) return;
+    const callbackName = "jsonp_youdao_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+    window[callbackName] = function(data) {
+      delete window[callbackName];
+      const scriptElem = document.getElementById(callbackName);
+      if (scriptElem) scriptElem.remove();
+      
+      if (data && data.data && data.data.entries && data.data.entries.length > 0) {
+        let trans = data.data.entries[0].explain;
+        if (!trans) trans = data.data.entries[0].entry;
         
         showTranslationToast(x, y, word, trans);
-        
-        // Add to vocab
-        if (!state.vocab[word]) {
-          state.vocab[word] = { translation: trans, ts: Date.now() };
-          saveState();
-          // Re-render if we are on the vocab page
-          if (location.hash === "#vocab") {
-            render();
-          }
-        }
+      } else {
+        showTranslationToast(x, y, word, "未找到释义");
       }
-    } catch(err) {
-      console.error("Translation error:", err);
-    }
+    };
+    
+    const script = document.createElement("script");
+    script.id = callbackName;
+    script.src = `https://dict.youdao.com/suggest?num=1&doctype=json&q=${encodeURIComponent(word)}&callback=${callbackName}`;
+    document.body.appendChild(script);
   });
 
   render();
