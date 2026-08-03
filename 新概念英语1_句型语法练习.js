@@ -8,26 +8,109 @@ const DATA = [{"id": "s01", "section": 1, "unit": 1, "unitName": "单元01 · �
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  const storageKey = "new-concept-grammar-72-v1";
+  const storageKeyPrefix = "new-concept-grammar-72-v2";
   let curUnit = 1;
   let curSec = DATA[0].id;
-  let state = { solved: {}, work: {}, stars: {}, vocab: {} };
+  let cloudSync = null;
+  let activeStorageKey = "";
+  let state = { solved: {}, work: {}, stars: {}, vocab: {}, updatedAt: 0 };
 
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
-    state.solved = saved.solved || {};
-    state.work = saved.work || {};
-    state.stars = saved.stars || {};
-    state.vocab = saved.vocab || {};
-  } catch (error) {
-    state = { solved: {}, work: {}, stars: {}, vocab: {} };
+  function emptyState() {
+    return { solved: {}, work: {}, stars: {}, vocab: {}, updatedAt: 0 };
   }
 
-  function saveState() {
+  function activateStudentStorage(identity) {
+    const keyPart = String(identity.userId || identity.username || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_.:-]/g, "-");
+    activeStorageKey = keyPart ? `${storageKeyPrefix}:${keyPart}` : "";
+    state = emptyState();
+    if (activeStorageKey) {
+      try {
+        state = normalizeState(JSON.parse(localStorage.getItem(activeStorageKey) || "{}"));
+      } catch (error) {
+        state = emptyState();
+      }
+    }
+    render();
+  }
+
+  function deactivateStudentStorage() {
+    activeStorageKey = "";
+    state = emptyState();
+    render();
+  }
+
+  function saveState({ skipCloud = false, preserveTimestamp = false } = {}) {
+    if (!preserveTimestamp) state.updatedAt = Date.now();
     try {
-      localStorage.setItem(storageKey, JSON.stringify(state));
+      if (activeStorageKey) localStorage.setItem(activeStorageKey, JSON.stringify(state));
     } catch (error) {
       // Local files or privacy settings may block storage; the page still works in-memory.
+    }
+    if (!skipCloud && cloudSync) cloudSync.queueSync();
+  }
+
+  function normalizeState(nextState = {}) {
+    return {
+      solved: nextState.solved || {},
+      work: nextState.work || {},
+      stars: nextState.stars || {},
+      vocab: nextState.vocab || {},
+      updatedAt: Number(nextState.updatedAt) || Date.now(),
+    };
+  }
+
+  function applyCloudState(nextState) {
+    state = normalizeState(nextState);
+    saveState({ skipCloud: true, preserveTimestamp: true });
+    render();
+  }
+
+  function progressSummary() {
+    const totalItems = DATA.reduce((sum, section) => sum + totalOf(section), 0);
+    const completedItems = Object.values(state.solved).reduce(
+      (sum, values) => sum + new Set(values || []).size,
+      0
+    );
+    const completedSections = DATA.filter((section) => {
+      const total = totalOf(section);
+      return total > 0 && solvedSet(section.id).size >= total;
+    }).length;
+    const starredItems = Object.values(state.stars).reduce(
+      (sum, values) => sum + new Set(values || []).size,
+      0
+    );
+
+    return {
+      completedItems,
+      totalItems,
+      completedSections,
+      totalSections: DATA.length,
+      progressPercent: totalItems ? Math.round((completedItems / totalItems) * 100) : 0,
+      starredItems,
+      vocabItems: Object.keys(state.vocab).length,
+      lastSection: curSec,
+    };
+  }
+
+  async function initializeCloudSync() {
+    try {
+      const { createCloudSync } = await import("./cloud-sync.js?v=20260803-login");
+      cloudSync = await createCloudSync({
+        getState: () => normalizeState(state),
+        applyState: applyCloudState,
+        getSummary: progressSummary,
+        onAuthenticated: activateStudentStorage,
+        onSignedOut: deactivateStudentStorage,
+      });
+    } catch (error) {
+      const status = $("cloudSyncStatus");
+      const dot = $("cloudSyncDot");
+      if (status) status.textContent = "本机保存 · 云同步暂不可用";
+      if (dot) dot.classList.add("error");
+      console.error("CloudBase 初始化失败", error);
     }
   }
 
@@ -495,7 +578,7 @@ const DATA = [{"id": "s01", "section": 1, "unit": 1, "unitName": "单元01 · �
     else values.delete(key);
     setSolved(secId, values);
     const item = $(`item-${secId}-${key}`);
-    const button = document.querySelector(`[data-manual="${section.id}|${key}"]`);
+    const button = document.querySelector(`[data-manual="${secId}|${key}"]`);
     if (item) item.classList.toggle("is-done", done);
     if (button) {
       button.classList.toggle("on", done);
@@ -910,4 +993,5 @@ th{background:#EEF2FB}.lesson-figure img{max-width:100%;height:auto}.spk{display
   });
 
   render();
+  initializeCloudSync();
 })();

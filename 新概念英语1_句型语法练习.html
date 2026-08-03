@@ -34,6 +34,51 @@
       -webkit-text-size-adjust: 100%
     }
 
+    body.auth-locked {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #4F7DF3, #7868E6)
+    }
+
+    body.auth-locked header {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 32px 18px
+    }
+
+    body.auth-locked .wrap {
+      width: min(100%, 520px)
+    }
+
+    body.auth-locked h1,
+    body.auth-locked .sub {
+      text-align: center
+    }
+
+    body.auth-locked .cloud-sync-panel {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(255, 255, 255, .16)
+    }
+
+    body.auth-locked nav,
+    body.auth-locked main,
+    body.auth-locked footer,
+    body.auth-locked .scoreline {
+      display: none
+    }
+
+    .auth-gate-copy {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-align: center;
+      color: rgba(255, 255, 255, .94)
+    }
+
+    body:not(.auth-locked) .auth-gate-copy {
+      display: none
+    }
+
     header {
       background: linear-gradient(135deg, #5B86F5, #7C6BF0);
       color: #fff;
@@ -63,6 +108,102 @@
       gap: 10px;
       margin-top: 12px;
       font-size: 13px
+    }
+
+    .cloud-sync-panel {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .12);
+      backdrop-filter: blur(6px)
+    }
+
+    .cloud-sync-summary,
+    .cloud-login-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .cloud-sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-right: auto;
+      font-size: 13px
+    }
+
+    .cloud-sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FFD86B;
+      box-shadow: 0 0 0 3px rgba(255, 216, 107, .18)
+    }
+
+    .cloud-sync-dot.online {
+      background: #77E39D;
+      box-shadow: 0 0 0 3px rgba(119, 227, 157, .2)
+    }
+
+    .cloud-sync-dot.error {
+      background: #FF9A97;
+      box-shadow: 0 0 0 3px rgba(255, 154, 151, .2)
+    }
+
+    .cloud-auth-button {
+      border: 1px solid rgba(255, 255, 255, .55);
+      border-radius: 8px;
+      padding: 6px 11px;
+      background: rgba(255, 255, 255, .16);
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600
+    }
+
+    .cloud-auth-button.primary {
+      border-color: #fff;
+      background: #fff;
+      color: var(--blue-d)
+    }
+
+    .cloud-login-form {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, .22)
+    }
+
+    .cloud-login-form[hidden],
+    .cloud-auth-button[hidden] {
+      display: none
+    }
+
+    .cloud-login-form input {
+      min-width: 150px;
+      flex: 1;
+      border: 1px solid rgba(255, 255, 255, .5);
+      border-radius: 8px;
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, .96);
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      outline: none
+    }
+
+    .cloud-login-form input:focus {
+      border-color: #FFD86B;
+      box-shadow: 0 0 0 2px rgba(255, 216, 107, .2)
+    }
+
+    .cloud-auth-message {
+      width: 100%;
+      min-height: 18px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, .92)
     }
 
     .bar {
@@ -517,6 +658,12 @@
       h1 {
         font-size: 18px
       }
+
+      .cloud-login-form input,
+      .cloud-login-form .cloud-auth-button {
+        width: 100%;
+        min-width: 100%
+      }
     }
 
     /* FULL_COURSE_ADDITIONS */
@@ -913,13 +1060,32 @@
   </style>
 </head>
 
-<body>
+<body class="auth-locked">
   <header>
     <div class="wrap">
       <h1>🌈 72节新概念语法课 I · 语法与练习</h1>
       <div class="sub">Lesson 1–144 ｜ 知识图谱 · 语法精讲 · 典型例题 · 课堂笔记</div>
       <div class="scoreline"><span id="scoreTxt">本节练习进度 0 / 0 组</span><span class="bar"><i id="scoreBar"></i></span>
       </div>
+      <section class="cloud-sync-panel" aria-label="云端学习记录">
+        <p class="auth-gate-copy">请使用专属学生账号登录。每个账号的学习记录会分别保存。</p>
+        <div class="cloud-sync-summary">
+          <span class="cloud-sync-status" role="status" aria-live="polite">
+            <i class="cloud-sync-dot" id="cloudSyncDot"></i>
+            <span id="cloudSyncStatus">本机保存 · 登录后可跨设备同步</span>
+          </span>
+          <button class="cloud-auth-button" id="cloudSyncNow" type="button" hidden>立即同步</button>
+          <button class="cloud-auth-button primary" id="cloudLoginToggle" type="button" hidden>学生登录</button>
+          <button class="cloud-auth-button" id="cloudLogout" type="button" hidden>退出登录</button>
+        </div>
+        <form class="cloud-login-form" id="cloudLoginForm">
+          <input id="cloudUsername" name="username" type="text" placeholder="学生账号" autocomplete="username" minlength="5" maxlength="24" required>
+          <input id="cloudPassword" name="password" type="password" placeholder="密码" autocomplete="current-password" minlength="8" maxlength="32" required>
+          <button class="cloud-auth-button primary" type="submit">登录并同步</button>
+          <button class="cloud-auth-button" id="cloudLoginCancel" type="button" hidden>取消</button>
+          <div class="cloud-auth-message" id="cloudAuthMessage" role="status" aria-live="polite"></div>
+        </form>
+      </section>
     </div>
   </header>
 
@@ -940,7 +1106,8 @@
 
   </footer>
 
-  <script src="新概念英语1_句型语法练习.js?v=20260728"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/3.4.2/cloudbase.full.js"></script>
+  <script src="新概念英语1_句型语法练习.js?v=20260803-login"></script>
 </body>
 
 </html>
