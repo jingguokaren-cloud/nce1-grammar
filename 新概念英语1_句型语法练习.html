@@ -170,6 +170,24 @@
       color: var(--blue-d)
     }
 
+    #cloudLogout {
+      position: fixed;
+      right: 16px;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      z-index: 100;
+      padding: 10px 15px;
+      border-color: rgba(255, 255, 255, .82);
+      background: rgba(42, 51, 72, .92);
+      box-shadow: 0 6px 20px rgba(42, 51, 72, .28);
+      backdrop-filter: blur(8px)
+    }
+
+    #cloudLogout:hover,
+    #cloudLogout:focus-visible {
+      background: #1F2937;
+      transform: translateY(-1px)
+    }
+
     .cloud-login-form {
       margin-top: 10px;
       padding-top: 10px;
@@ -1076,7 +1094,7 @@
           </span>
           <button class="cloud-auth-button" id="cloudSyncNow" type="button" hidden>立即同步</button>
           <button class="cloud-auth-button primary" id="cloudLoginToggle" type="button" hidden>学生登录</button>
-          <button class="cloud-auth-button" id="cloudLogout" type="button" hidden>退出登录</button>
+          <button class="cloud-auth-button" id="cloudLogout" type="button" hidden>退出账号</button>
         </div>
         <form class="cloud-login-form" id="cloudLoginForm">
           <input id="cloudUsername" name="username" type="text" placeholder="学生账号" autocomplete="username" minlength="5" maxlength="24" required>
