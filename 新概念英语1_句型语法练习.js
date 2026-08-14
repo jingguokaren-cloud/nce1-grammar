@@ -376,7 +376,7 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
           </div>
         </div>
         <div style="margin-top: 20px;">
-          ${list || '<p style="color:#9AA3B5; font-size:14px; text-align:center; padding: 40px 0;">手机或平板长按、电脑双击课文或题目中的英文单词，查询后可选择加入生词本。</p>'}
+          ${list || '<p style="color:#9AA3B5; font-size:14px; text-align:center; padding: 40px 0;">双击课文或题目中的英文单词，即可查看中文意思并自动加入生词本哦~</p>'}
         </div>
       </div>
     `;
@@ -977,7 +977,7 @@ th{background:#EEF2FB}.lesson-figure img{max-width:100%;height:auto}.spk{display
     }, 100);
   }
 
-  document.body.addEventListener("nce-legacy-dblclick", async (e) => {
+  document.body.addEventListener("dblclick", async (e) => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
     const text = selection.toString().trim();
@@ -1019,15 +1019,6 @@ th{background:#EEF2FB}.lesson-figure img{max-width:100%;height:auto}.spk{display
     document.body.appendChild(script);
   });
 
-  window.NCEWordLookup?.init({
-    root: "#main",
-    isSaved: (word) => Boolean(state.vocab[word]),
-    onSave: (word, translation) => {
-      state.vocab[word] = { translation, ts: Date.now() };
-      saveState();
-      if (curUnit === "vocab") renderVocabBook();
-    },
-  });
   render();
   initializeCloudSync();
 })();
