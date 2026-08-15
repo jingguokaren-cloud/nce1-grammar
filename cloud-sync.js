@@ -137,8 +137,8 @@ export async function createCloudSync({
     accessKey: CLOUDBASE_PUBLISHABLE_KEY,
   });
   const auth = typeof app.auth === "function" ? app.auth() : app.auth;
-  const db = app.database();
-  const collection = db.collection(COLLECTION_NAME);
+  const db = typeof app.database === "function" ? app.database() : null;
+  const collection = db ? db.collection(COLLECTION_NAME) : null;
   const elements = {
     dot: document.getElementById("cloudSyncDot"),
     status: document.getElementById("cloudSyncStatus"),
@@ -220,6 +220,10 @@ export async function createCloudSync({
   }
 
   async function loadAndMerge() {
+    if (!collection) {
+      setStatus(`${currentDisplayName} · 已登录，本机保存`, "online");
+      return;
+    }
     setStatus(`${currentDisplayName} · 正在合并学习记录…`);
     const record = await findRecord();
     documentId = record?._id || "";
@@ -250,7 +254,7 @@ export async function createCloudSync({
   }
 
   async function syncNow() {
-    if (!currentUser || syncing) return;
+    if (!currentUser || !collection || syncing) return;
     clearTimeout(syncTimer);
     clearTimeout(retryTimer);
     syncing = true;
@@ -268,7 +272,7 @@ export async function createCloudSync({
   }
 
   function queueSync() {
-    if (!currentUser) return;
+    if (!currentUser || !collection) return;
     setStatus(`${currentDisplayName} · 待同步`);
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => syncNow(), SYNC_DELAY_MS);

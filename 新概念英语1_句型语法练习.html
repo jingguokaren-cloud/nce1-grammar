@@ -1138,10 +1138,28 @@
 
   <script>
     window.globalThis = window.globalThis || window;
+    Object.values = Object.values || function (object) {
+      return Object.keys(object).map(function (key) { return object[key]; });
+    };
+    Object.entries = Object.entries || function (object) {
+      return Object.keys(object).map(function (key) { return [key, object[key]]; });
+    };
+    String.prototype.padStart = String.prototype.padStart || function (length, fill) {
+      var value = String(this);
+      var padding = String(fill || " ");
+      while (value.length < length) value = padding + value;
+      return value.slice(-length);
+    };
+    window.NCE_LEGACY_BROWSER = typeof window.BigInt !== "function"
+      || window.location.search.indexOf("legacy=1") !== -1;
+    document.write('<script src="vendor/cloudbase.core.compat.js?v=3.4.2-legacy3"><\/script>');
+    document.write('<script src="vendor/cloudbase.auth.compat.js?v=3.4.2-legacy3"><\/script>');
+    if (!window.NCE_LEGACY_BROWSER) {
+      document.write('<script src="vendor/cloudbase.database.compat.js?v=3.4.2-legacy3"><\/script>');
+    }
   </script>
-  <script src="vendor/cloudbase.full.compat.js?v=3.4.2-qq1"></script>
-  <script src="cloud-sync.compat.js?v=20260815-qq1"></script>
-  <script src="新概念英语1_句型语法练习.js?v=20260815-qq1"></script>
+  <script src="cloud-sync.compat.js?v=20260815-legacy3"></script>
+  <script src="新概念英语1_句型语法练习.compat.js?v=20260815-legacy3"></script>
 </body>
 
 </html>
