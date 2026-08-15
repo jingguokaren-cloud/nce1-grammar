@@ -347,6 +347,8 @@ export async function createCloudSync({
       submitButton.disabled = false;
     }
   });
+  window.NCE_LOGIN_READY = true;
+  elements.form.setAttribute("data-login-ready", "true");
 
   elements.logout.addEventListener("click", async () => {
     try {

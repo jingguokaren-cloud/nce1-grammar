@@ -1107,7 +1107,7 @@
           <button class="cloud-auth-button" id="cloudSyncNow" type="button" hidden>立即同步</button>
           <button class="cloud-auth-button primary" id="cloudLoginToggle" type="button" hidden>学生登录</button>
         </div>
-        <form class="cloud-login-form" id="cloudLoginForm">
+        <form class="cloud-login-form" id="cloudLoginForm" onsubmit="if (!window.NCE_LOGIN_READY) { document.getElementById('cloudAuthMessage').textContent = '学习机登录组件未启动，请截图此提示。'; } return false;">
           <input id="cloudUsername" name="username" type="text" placeholder="学生账号" autocomplete="username" minlength="5" maxlength="24" required>
           <input id="cloudPassword" name="password" type="password" placeholder="密码" autocomplete="current-password" minlength="8" maxlength="32" required>
           <button class="cloud-auth-button primary" type="submit">登录并同步</button>
@@ -1152,14 +1152,23 @@
     };
     window.NCE_LEGACY_BROWSER = typeof window.BigInt !== "function"
       || window.location.search.indexOf("legacy=1") !== -1;
-    document.write('<script src="vendor/cloudbase.core.compat.js?v=3.4.2-legacy3"><\/script>');
-    document.write('<script src="vendor/cloudbase.auth.compat.js?v=3.4.2-legacy3"><\/script>');
-    if (!window.NCE_LEGACY_BROWSER) {
+    if (window.NCE_LEGACY_BROWSER) {
+      document.write('<script src="vendor/cloudbase.core.es5.js?v=3.4.2-es5-4"><\/script>');
+      document.write('<script src="vendor/cloudbase.auth.es5.js?v=3.4.2-es5-4"><\/script>');
+    } else {
+      document.write('<script src="vendor/cloudbase.core.compat.js?v=3.4.2-es5-4"><\/script>');
+      document.write('<script src="vendor/cloudbase.auth.compat.js?v=3.4.2-es5-4"><\/script>');
       document.write('<script src="vendor/cloudbase.database.compat.js?v=3.4.2-legacy3"><\/script>');
     }
   </script>
-  <script src="cloud-sync.compat.js?v=20260815-legacy3"></script>
-  <script src="新概念英语1_句型语法练习.compat.js?v=20260815-legacy3"></script>
+  <script>
+    document.write(window.NCE_LEGACY_BROWSER
+      ? '<script src="cloud-sync.es5.js?v=20260815-es5-4"><\/script>'
+      : '<script src="cloud-sync.compat.js?v=20260815-es5-4"><\/script>');
+    document.write(window.NCE_LEGACY_BROWSER
+      ? '<script src="新概念英语1_句型语法练习.es5.js?v=20260815-es5-4"><\/script>'
+      : '<script src="新概念英语1_句型语法练习.compat.js?v=20260815-es5-4"><\/script>');
+  </script>
 </body>
 
 </html>
