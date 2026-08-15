@@ -97,7 +97,10 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
 
   async function initializeCloudSync() {
     try {
-      const { createCloudSync } = await import("./cloud-sync.js?v=20260803-login");
+      const createCloudSync = window.NCECloudSync && window.NCECloudSync.createCloudSync;
+      if (typeof createCloudSync !== "function") {
+        throw new Error("QQ 兼容登录模块未加载");
+      }
       cloudSync = await createCloudSync({
         getState: () => normalizeState(state),
         applyState: applyCloudState,

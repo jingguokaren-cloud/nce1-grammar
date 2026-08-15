@@ -10,6 +10,22 @@ const USERNAME_KEY = "nce1-grammar-last-username";
 const SYNC_DELAY_MS = 900;
 const RETRY_DELAY_MS = 12000;
 
+function readStoredUsername() {
+  try {
+    return localStorage.getItem(USERNAME_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function storeUsername(username) {
+  try {
+    localStorage.setItem(USERNAME_KEY, username);
+  } catch (error) {
+    // Some mobile privacy modes block storage. Login should still work in memory.
+  }
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -94,7 +110,7 @@ function usernameOf(user) {
   return user?.username
     || user?.user_metadata?.username
     || user?.metadata?.username
-    || localStorage.getItem(USERNAME_KEY)
+    || readStoredUsername()
     || "学生";
 }
 
@@ -218,6 +234,21 @@ export async function createCloudSync({
     retryTimer = setTimeout(() => syncNow(), RETRY_DELAY_MS);
   }
 
+  function scheduleInitialSyncRetry() {
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(() => loadInitialState(), RETRY_DELAY_MS);
+  }
+
+  async function loadInitialState() {
+    try {
+      await loadAndMerge();
+    } catch (error) {
+      setStatus(`${currentDisplayName} · 已登录，云同步待重试`, "error");
+      scheduleInitialSyncRetry();
+      console.error("初次读取学习记录失败", error);
+    }
+  }
+
   async function syncNow() {
     if (!currentUser || syncing) return;
     clearTimeout(syncTimer);
@@ -255,10 +286,10 @@ export async function createCloudSync({
     currentUser = user;
     currentUsername = username;
     currentDisplayName = displayNameOf(user, username);
-    localStorage.setItem(USERNAME_KEY, username);
+    storeUsername(username);
     onAuthenticated?.({ userId: userIdOf(user), username });
-    await loadAndMerge();
     updateAuthUi();
+    await loadInitialState();
   }
 
   async function restoreSession() {
@@ -275,8 +306,8 @@ export async function createCloudSync({
       currentUsername = usernameOf(user);
       currentDisplayName = displayNameOf(user, currentUsername);
       onAuthenticated?.({ userId: userIdOf(user), username: currentUsername });
-      await loadAndMerge();
       updateAuthUi();
+      await loadInitialState();
     } catch (error) {
       setStatus("本机保存 · 云端会话恢复失败", "error");
       console.error("CloudBase 会话恢复失败", error);
@@ -285,7 +316,7 @@ export async function createCloudSync({
 
   elements.loginToggle.addEventListener("click", () => {
     elements.form.hidden = false;
-    elements.username.value = localStorage.getItem(USERNAME_KEY) || "";
+    elements.username.value = readStoredUsername();
     setMessage("账号由老师统一创建；密码不会保存到网页中。");
     (elements.username.value ? elements.password : elements.username).focus();
   });
