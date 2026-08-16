@@ -1153,8 +1153,8 @@
     window.NCE_LEGACY_BROWSER = typeof window.BigInt !== "function"
       || window.location.search.indexOf("legacy=1") !== -1;
     if (window.NCE_LEGACY_BROWSER) {
-      document.write('<script src="vendor/cloudbase.core.es5.js?v=3.4.2-es5-4"><\/script>');
-      document.write('<script src="vendor/cloudbase.auth.es5.js?v=3.4.2-es5-4"><\/script>');
+      document.write('<script src="vendor/cloudbase.core.es5.js?v=3.4.2-split5" onerror="document.getElementById(\'cloudAuthMessage\').textContent=\'学习机核心脚本下载失败，请截图此提示。\'"><\/script>');
+      document.write('<script src="vendor/cloudbase.auth.es5.js?v=3.4.2-split5" onerror="document.getElementById(\'cloudAuthMessage\').textContent=\'学习机认证脚本下载失败，请截图此提示。\'"><\/script>');
     } else {
       document.write('<script src="vendor/cloudbase.core.compat.js?v=3.4.2-es5-4"><\/script>');
       document.write('<script src="vendor/cloudbase.auth.compat.js?v=3.4.2-es5-4"><\/script>');
@@ -1162,12 +1162,14 @@
     }
   </script>
   <script>
+    if (window.NCE_LEGACY_BROWSER) {
+      document.write('<script src="legacy-login.es5.js?v=20260816-split5" onerror="document.getElementById(\'cloudAuthMessage\').textContent=\'学习机独立登录脚本下载失败，请截图此提示。\'"><\/script>');
+    } else {
+      document.write('<script src="cloud-sync.compat.js?v=20260816-split5"><\/script>');
+    }
     document.write(window.NCE_LEGACY_BROWSER
-      ? '<script src="cloud-sync.es5.js?v=20260815-es5-4"><\/script>'
-      : '<script src="cloud-sync.compat.js?v=20260815-es5-4"><\/script>');
-    document.write(window.NCE_LEGACY_BROWSER
-      ? '<script src="新概念英语1_句型语法练习.es5.js?v=20260815-es5-4"><\/script>'
-      : '<script src="新概念英语1_句型语法练习.compat.js?v=20260815-es5-4"><\/script>');
+      ? '<script src="新概念英语1_句型语法练习.es5.js?v=20260816-split5"><\/script>'
+      : '<script src="新概念英语1_句型语法练习.compat.js?v=20260816-split5"><\/script>');
   </script>
 </body>
 

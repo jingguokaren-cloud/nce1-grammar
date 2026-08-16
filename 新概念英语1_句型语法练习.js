@@ -96,6 +96,17 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
   }
 
   async function initializeCloudSync() {
+    if (window.NCE_LEGACY_BROWSER) {
+      const applyLegacyIdentity = (identity) => {
+        if (identity) activateStudentStorage(identity);
+      };
+      window.addEventListener("nce-legacy-authenticated", (event) => {
+        applyLegacyIdentity(event.detail);
+      });
+      window.addEventListener("nce-legacy-signed-out", deactivateStudentStorage);
+      applyLegacyIdentity(window.NCE_LEGACY_IDENTITY);
+      return;
+    }
     try {
       const createCloudSync = window.NCECloudSync && window.NCECloudSync.createCloudSync;
       if (typeof createCloudSync !== "function") {
