@@ -96,7 +96,7 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
   }
 
   async function initializeCloudSync() {
-    if (window.NCE_LEGACY_BROWSER) {
+    if (window.NCE_LEGACY_BROWSER && !window.NCE_SINGLE_FILE_SYNC) {
       const applyLegacyIdentity = (identity) => {
         if (identity) activateStudentStorage(identity);
       };
@@ -126,6 +126,29 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
       if (dot) dot.classList.add("error");
       console.error("CloudBase 初始化失败", error);
     }
+  }
+
+  function matchesKey(event, key, keyCode) {
+    return event.key === key || event.keyCode === keyCode || event.which === keyCode;
+  }
+
+  function focusAdjacentAnswerInput(currentInput, direction) {
+    const inputs = $("main").querySelectorAll("[data-input]");
+    if (inputs.length < 2) return;
+
+    let currentIndex = -1;
+    for (let index = 0; index < inputs.length; index += 1) {
+      if (inputs[index] === currentInput) {
+        currentIndex = index;
+        break;
+      }
+    }
+    if (currentIndex < 0) return;
+
+    const nextIndex = (currentIndex + direction + inputs.length) % inputs.length;
+    const nextInput = inputs[nextIndex];
+    nextInput.focus();
+    if (typeof nextInput.select === "function") nextInput.select();
   }
 
   function solvedSet(id) {
@@ -520,7 +543,15 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
           saveState();
         });
         input.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") checkInput(input.dataset.input);
+          if (matchesKey(event, "Enter", 13)) {
+            event.preventDefault();
+            checkInput(input.dataset.input);
+            return;
+          }
+          if (matchesKey(event, "Tab", 9)) {
+            event.preventDefault();
+            focusAdjacentAnswerInput(input, event.shiftKey ? -1 : 1);
+          }
         });
       });
   }

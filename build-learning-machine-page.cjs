@@ -5,7 +5,8 @@ const outputPath = "learning-machine.html";
 const scriptPaths = [
   "vendor/cloudbase.core.es5.js",
   "vendor/cloudbase.auth.es5.js",
-  "legacy-login.es5.js",
+  "vendor/cloudbase.database.es5.js",
+  "cloud-sync.es5.js",
   "新概念英语1_句型语法练习.es5.js",
 ];
 const source = fs.readFileSync(sourcePath, "utf8");
@@ -37,7 +38,8 @@ const bootstrap = `  <script>
       return value.slice(-length);
     };
     window.NCE_LEGACY_BROWSER = true;
-    window.NCE_SINGLE_FILE_BUILD = "20260816-single7";
+    window.NCE_SINGLE_FILE_SYNC = true;
+    window.NCE_SINGLE_FILE_BUILD = "20260816-single8";
   </script>`;
 
 const output = source.slice(0, loaderStart)
