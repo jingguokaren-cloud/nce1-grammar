@@ -135,6 +135,40 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
       || event.which === keyCode;
   }
 
+  function isEnterKey(event) {
+    const key = String(event.key || "").toLowerCase();
+    const code = String(event.code || "").toLowerCase();
+    const legacyCode = Number(event.keyCode || event.which || 0);
+    return key === "enter"
+      || key === "return"
+      || code === "enter"
+      || code === "numpadenter"
+      || legacyCode === 10
+      || legacyCode === 13;
+  }
+
+  function answerInputFromTarget(target) {
+    if (!target) return null;
+    if (target.matches && target.matches("[data-input]")) return target;
+    if (target.closest) return target.closest("[data-input]");
+    let node = target;
+    while (node && node !== document) {
+      if (node.getAttribute && node.getAttribute("data-input")) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function handleAnswerEnter(event) {
+    if (!isEnterKey(event)) return;
+    const input = answerInputFromTarget(event.target);
+    const main = $("main");
+    if (!input || !main || !main.contains(input)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    checkInput(input.getAttribute("data-input"));
+  }
+
   function isTabInsertionText(value) {
     return typeof value === "string"
       && (value.indexOf("\t") !== -1 || /^ {2,8}$/.test(value));
@@ -614,17 +648,20 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
           saveState();
         });
         input.addEventListener("keydown", (event) => {
-          if (matchesKey(event, "Enter", 13)) {
-            event.preventDefault();
-            checkInput(input.dataset.input);
-            return;
-          }
           if (matchesKey(event, "Tab", 9)) {
             event.preventDefault();
             focusAdjacentAnswerInput(input, event.shiftKey ? -1 : 1);
           }
         });
       });
+
+    const main = $("main");
+    if (main) {
+      main.removeEventListener("keydown", handleAnswerEnter, true);
+      main.removeEventListener("keypress", handleAnswerEnter, true);
+      main.addEventListener("keydown", handleAnswerEnter, true);
+      main.addEventListener("keypress", handleAnswerEnter, true);
+    }
   }
 
   function render() {
