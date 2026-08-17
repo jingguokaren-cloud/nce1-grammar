@@ -229,6 +229,27 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
   function speak(text) {}
 
   function buildNav() {
+    const lessonSelect = $("lessonSelect");
+    if (lessonSelect) {
+      lessonSelect.innerHTML = DATA
+        .map((section) => {
+          const lessonLabel = String(section.lessons || "")
+            .replace(/Lesson /g, "L")
+            .replace(" — ", " 到 ");
+          return `<option value="${section.id}">${lessonLabel} · ${section.title}</option>`;
+        })
+        .join("");
+      lessonSelect.value = curSec;
+      lessonSelect.onchange = () => {
+        const section = DATA.find((item) => item.id === lessonSelect.value);
+        if (!section) return;
+        curSec = section.id;
+        curUnit = section.unit;
+        render();
+        window.scrollTo({ top: 0, behavior: "auto" });
+      };
+    }
+
     const units = [...new Set(DATA.map((section) => section.unit))];
     $("units").innerHTML = units
       .map((unit) => {
