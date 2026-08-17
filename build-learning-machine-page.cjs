@@ -39,7 +39,7 @@ const bootstrap = `  <script>
     };
     window.NCE_LEGACY_BROWSER = true;
     window.NCE_SINGLE_FILE_SYNC = true;
-    window.NCE_SINGLE_FILE_BUILD = "20260817-single9";
+    window.NCE_SINGLE_FILE_BUILD = "20260817-single10";
   </script>`;
 
 const output = source.slice(0, loaderStart)
