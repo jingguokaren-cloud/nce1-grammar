@@ -129,7 +129,45 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
   }
 
   function matchesKey(event, key, keyCode) {
-    return event.key === key || event.keyCode === keyCode || event.which === keyCode;
+    return event.key === key
+      || event.code === key
+      || event.keyCode === keyCode
+      || event.which === keyCode;
+  }
+
+  function isTabInsertionText(value) {
+    return typeof value === "string"
+      && (value.indexOf("\t") !== -1 || /^ {2,8}$/.test(value));
+  }
+
+  function insertedText(previousValue, currentValue) {
+    if (currentValue.length <= previousValue.length) return "";
+
+    let prefixLength = 0;
+    while (
+      prefixLength < previousValue.length
+      && previousValue[prefixLength] === currentValue[prefixLength]
+    ) {
+      prefixLength += 1;
+    }
+
+    let previousSuffix = previousValue.length - 1;
+    let currentSuffix = currentValue.length - 1;
+    while (
+      previousSuffix >= prefixLength
+      && previousValue[previousSuffix] === currentValue[currentSuffix]
+    ) {
+      previousSuffix -= 1;
+      currentSuffix -= 1;
+    }
+
+    return currentValue.slice(prefixLength, currentSuffix + 1);
+  }
+
+  function isConvertedTabInput(event, previousValue, currentValue) {
+    if (event.inputType === "insertFromPaste") return false;
+    return isTabInsertionText(event.data)
+      || isTabInsertionText(insertedText(previousValue, currentValue));
   }
 
   function focusAdjacentAnswerInput(currentInput, direction) {
@@ -537,7 +575,19 @@ const DATA = [{"id":"s01","section":1,"unit":1,"unitName":"单元01 · 第01–0
     $("main")
       .querySelectorAll("[data-input]")
       .forEach((input) => {
-        input.addEventListener("input", () => {
+        let previousValue = input.value;
+        input.addEventListener("beforeinput", (event) => {
+          if (!isConvertedTabInput(event, input.value, input.value)) return;
+          event.preventDefault();
+          focusAdjacentAnswerInput(input, 1);
+        });
+        input.addEventListener("input", (event) => {
+          if (isConvertedTabInput(event, previousValue, input.value)) {
+            input.value = previousValue;
+            focusAdjacentAnswerInput(input, 1);
+            return;
+          }
+          previousValue = input.value;
           const [secId, key] = input.dataset.input.split("|");
           state.work[`${secId}-${key}`] = input.value;
           saveState();
